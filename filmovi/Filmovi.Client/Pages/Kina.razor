@@ -1,15 +1,8 @@
 @page "/kina"
 @inject HttpClient Http
+@inject NavigationManager Nav
 
-<h3>Kina i filmovi</h3>
-
-<h2 class="mb-4">Evidencija kina i filmova</h2>
-<p>Pregled filmova po kinima, unos, izmjena i brisanje.</p>
-
-@if (!string.IsNullOrWhiteSpace(poruka))
-{
-    <div class="alert alert-info">@poruka</div>
-}
+<h2 class="mb-4">Kina</h2>
 
 @if (kina is null)
 {
@@ -17,222 +10,43 @@
 }
 else
 {
-    @foreach (var kino in kina)
-    {
-        <h4>@kino.Naziv</h4>
-
-        @if (kino.Filmovi.Count == 0)
+    <div class="row">
+        @foreach (var kino in kina)
         {
-            <p>Trenutno nema filmova.</p>
+            <div class="col-md-3 mb-4">
+                <div class="card h-100" style="cursor:pointer"
+                     @onclick="() => OtvoriKino(kino.Id)">
+
+                    <img class="card-img-top"
+                         src="@($"images/kino{kino.Id}.jpg")"
+                         style="height:180px; object-fit:cover" />
+
+                    <div class="card-body text-center">
+                        <h5 class="card-title">@kino.Naziv</h5>
+                    </div>
+                </div>
+            </div>
         }
-        else
-        {
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Naziv filma</th>
-                        <th>Šifra</th>
-                        <th>Datum projekcije</th>
-                        <th>Cijena karte</th>
-                        <th>Akcije</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var film in kino.Filmovi)
-                    {
-                        <tr>
-                            <td>@film.NazivFilma</td>
-                            <td>@film.SifraFilma</td>
-                            <td>@film.DatumProjekcije.ToString("dd.MM.yyyy HH:mm")</td>
-                            <td>@film.CijenaKarte</td>
-                            <td>
-                                <button class="btn btn-warning btn-sm me-2" @onclick="() => UcitajZaEdit(film)">Uredi</button>
-                                <button class="btn btn-danger btn-sm" @onclick="() => ObrisiFilm(film.FilmId)">Obriši</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-    }
-}
-
-<hr />
-
-<h4>Dodaj novi film u kino</h4>
-
-<div style="margin-bottom: 8px;">
-    <label>Naziv filma: </label>
-    <input @bind="noviFilm.Naziv" />
-</div>
-
-<div style="margin-bottom: 8px;">
-    <label>Šifra filma: </label>
-    <input @bind="noviFilm.SifraFilma" />
-</div>
-
-<div style="margin-bottom: 8px;">
-    <label>Kino: </label>
-    <select @bind="noviFilm.KinoId">
-        <option value="0">Odaberi kino</option>
-        @if (kina is not null)
-        {
-            @foreach (var kino in kina)
-            {
-                <option value="@kino.Id">@kino.Naziv</option>
-            }
-        }
-    </select>
-</div>
-
-<div style="margin-bottom: 8px;">
-    <label>Datum projekcije: </label>
-    <input type="datetime-local" @bind="datumProjekcijeInput" />
-</div>
-
-<div style="margin-bottom: 8px;">
-    <label>Cijena karte: </label>
-    <input type="number" step="0.01" @bind="noviFilm.CijenaKarte" />
-</div>
-
-<div style="margin-bottom: 16px;">
-    <button class="btn btn-primary" @onclick="DodajFilm">Spremi</button>
-</div>
-
-<hr />
-
-<h4>Izmjena filma</h4>
-
-@if (filmZaEdit is null)
-{
-    <p>Odaberi film za izmjenu.</p>
-}
-else
-{
-    <div style="margin-bottom: 8px;">
-        <label>Naziv filma: </label>
-        <input @bind="filmZaEdit.Naziv" />
-    </div>
-
-    <div style="margin-bottom: 8px;">
-        <label>Šifra filma: </label>
-        <input @bind="filmZaEdit.SifraFilma" />
-    </div>
-
-    <div style="margin-bottom: 16px;">
-        <button class="btn btn-success" @onclick="SpremiIzmjenu">Spremi izmjene</button>
     </div>
 }
 
 @code {
+
     private List<KinoDto>? kina;
 
-    private CreateFilmDto noviFilm = new();
-    private DateTime datumProjekcijeInput = DateTime.Now;
-
-    private UpdateFilmDto? filmZaEdit;
-
     protected override async Task OnInitializedAsync()
-    {
-        await UcitajKina();
-    }
-
-    private async Task UcitajKina()
     {
         kina = await Http.GetFromJsonAsync<List<KinoDto>>("api/kina");
     }
 
-    private async Task DodajFilm()
+    void OtvoriKino(int id)
     {
-        poruka = null;
-        
-        if (string.IsNullOrWhiteSpace(noviFilm.Naziv) ||
-            string.IsNullOrWhiteSpace(noviFilm.SifraFilma) ||
-            noviFilm.KinoId == 0)
-        {
-            poruka = "Unesi naziv, šifru i odaberi kino.";
-            return;
-        }
-
-        noviFilm.DatumProjekcije = datumProjekcijeInput;
-
-        var response = await Http.PostAsJsonAsync("api/filmovi", noviFilm);
-        response.EnsureSuccessStatusCode();
-
-        noviFilm = new CreateFilmDto();
-        datumProjekcijeInput = DateTime.Now;
-        poruka = "Film je uspješno dodan!";
-
-        await UcitajKina();
-    }
-
-    private async Task ObrisiFilm(int filmId)
-    {
-        var response = await Http.DeleteAsync($"api/filmovi/{filmId}");
-        response.EnsureSuccessStatusCode();
-
-        if (filmZaEdit is not null && filmZaEdit.Id == filmId)
-        {
-            filmZaEdit = null;
-        }
-
-        await UcitajKina();
-    }
-
-    private void UcitajZaEdit(FilmDto film)
-    {
-        filmZaEdit = new UpdateFilmDto
-        {
-            Id = film.FilmId,
-            Naziv = film.NazivFilma,
-            SifraFilma = film.SifraFilma
-        };
-    }
-
-    private async Task SpremiIzmjenu()
-    {
-        if (filmZaEdit is null)
-            return;
-
-        var response = await Http.PutAsJsonAsync($"api/filmovi/{filmZaEdit.Id}", filmZaEdit);
-        response.EnsureSuccessStatusCode();
-
-        filmZaEdit = null;
-        await UcitajKina();
+        Nav.NavigateTo($"/kino/{id}");
     }
 
     public class KinoDto
     {
         public int Id { get; set; }
         public string Naziv { get; set; } = "";
-        public List<FilmDto> Filmovi { get; set; } = new();
     }
-
-    public class FilmDto
-    {
-        public int Id { get; set; }
-        public int FilmId { get; set; }
-        public string NazivFilma { get; set; } = "";
-        public string SifraFilma { get; set; } = "";
-        public DateTime DatumProjekcije { get; set; }
-        public decimal CijenaKarte { get; set; }
-    }
-
-    public class CreateFilmDto
-    {
-        public string Naziv { get; set; } = "";
-        public string SifraFilma { get; set; } = "";
-        public int KinoId { get; set; }
-        public DateTime DatumProjekcije { get; set; }
-        public decimal CijenaKarte { get; set; }
-    }
-
-    public class UpdateFilmDto
-    {
-        public int Id { get; set; }
-        public string Naziv { get; set; } = "";
-        public string SifraFilma { get; set; } = "";
-    }
-
-    private string? poruka;
 }

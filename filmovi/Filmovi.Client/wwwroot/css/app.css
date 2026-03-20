@@ -6,6 +6,10 @@ h1:focus {
     outline: none;
 }
 
+.top-row {
+    border-bottom: none !important;
+}
+
 a, .btn-link {
     color: #0071c1;
 }

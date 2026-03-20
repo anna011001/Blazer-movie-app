@@ -45,13 +45,22 @@ public class FilmoviController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, UpdateFilmRequest request)
     {
-        var film = await _db.Filmovi.FindAsync(id);
+        var film = await _db.Filmovi
+            .Include(f => f.KinoFilmovi)
+            .FirstOrDefaultAsync(f => f.Id == id);
 
         if (film == null)
             return NotFound();
 
         film.Naziv = request.Naziv;
         film.SifraFilma = request.SifraFilma;
+
+        var kinoFilm = film.KinoFilmovi.FirstOrDefault();
+        if (kinoFilm != null)
+        {
+            kinoFilm.DatumProjekcije = request.DatumProjekcije;
+            kinoFilm.CijenaKarte = request.CijenaKarte;
+        }
 
         await _db.SaveChangesAsync();
 
@@ -79,8 +88,8 @@ public class FilmoviController : ControllerBase
 
 public class CreateFilmRequest
 {
-    public string Naziv { get; set; }
-    public string SifraFilma { get; set; }
+    public string Naziv { get; set; } = "";
+    public string SifraFilma { get; set; } = "";
     public int KinoId { get; set; }
     public DateTime DatumProjekcije { get; set; }
     public decimal CijenaKarte { get; set; }
@@ -88,6 +97,8 @@ public class CreateFilmRequest
 
 public class UpdateFilmRequest
 {
-    public string Naziv { get; set; }
-    public string SifraFilma { get; set; }
+    public string Naziv { get; set; } = "";
+    public string SifraFilma { get; set; } = "";
+    public DateTime DatumProjekcije { get; set; }
+    public decimal CijenaKarte { get; set; }
 }

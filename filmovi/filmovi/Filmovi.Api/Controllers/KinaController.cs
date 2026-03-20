@@ -29,8 +29,8 @@ public class KinaController : ControllerBase
                 {
                     kf.Id,
                     FilmId = kf.FilmId,
-                    NazivFilma = kf.Film.Naziv,
-                    SifraFilma = kf.Film.SifraFilma,
+                    NazivFilma = kf.Film!.Naziv,
+                    SifraFilma = kf.Film!.SifraFilma,
                     kf.DatumProjekcije,
                     kf.CijenaKarte
                 })

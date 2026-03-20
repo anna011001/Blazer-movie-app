@@ -1,0 +1,191 @@
+@page "/kino/{KinoId:int}"
+@inject HttpClient Http
+
+@inject NavigationManager Nav
+
+<h2>@nazivKina</h2>
+
+<button class="btn btn-primary mb-3" @onclick="() => showAdd = !showAdd">
+    Dodaj film
+</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Naziv</th>
+            <th>Šifra</th>
+            <th>Datum</th>
+            <th>Cijena</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var film in filmovi)
+        {
+            <tr>
+                <td>@film.NazivFilma</td>
+                <td>@film.SifraFilma</td>
+                <td>@film.DatumProjekcije.ToString("dd.MM.yyyy HH:mm")</td>
+                <td>@film.CijenaKarte €</td>
+
+                <td>
+                    <button class="btn btn-warning btn-sm"
+                            @onclick="() => UcitajZaEdit(film)">
+                        Uredi
+                    </button>
+
+                    <button class="btn btn-danger btn-sm"
+                            @onclick="() => ObrisiFilm(film.FilmId)">
+                        Obriši
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (editFilm is not null)
+{
+    <div class="card p-3 mt-3 mb-3" style="max-width: 420px;">
+        <h5>Uredi film</h5>
+
+        <input @bind="editFilm.Naziv" class="form-control mb-2" />
+        <input @bind="editFilm.SifraFilma" class="form-control mb-2" />
+
+        <input type="datetime-local" @bind="editFilm.DatumProjekcije" class="form-control mb-2" />
+
+        <input type="number" step="0.01" @bind="editFilm.CijenaKarte" class="form-control mb-2" />
+
+        <button class="btn btn-success" @onclick="SpremiIzmjenu">
+            Spremi izmjene
+        </button>
+    </div>
+}
+
+@if (showAdd)
+{
+    <div class="card p-3 mb-3 mt-3" style="max-width: 420px;">
+        <input placeholder="Naziv filma" @bind="noviFilm.Naziv" class="form-control mb-2" />
+        <input placeholder="Šifra filma" @bind="noviFilm.SifraFilma" class="form-control mb-2" />
+
+        <input type="datetime-local" @bind="datumInput" class="form-control mb-2" />
+
+        <input type="number" step="0.01" @bind="noviFilm.CijenaKarte" class="form-control mb-2" />
+
+        <button class="btn btn-success" @onclick="DodajFilm">Spremi</button>
+    </div>
+}
+
+<button class="btn btn-outline-secondary btn-sm mt-3"
+        @onclick='() => Nav.NavigateTo("/kina")'>
+    ← Natrag
+</button>
+
+@code {
+
+    [Parameter]
+    public int KinoId { get; set; }
+
+    private string nazivKina = "";
+
+    private bool showAdd = false;
+
+    private DateTime datumInput = DateTime.Now;
+
+    private CreateFilmDto noviFilm = new();
+    private UpdateFilmDto? editFilm;
+
+    private List<FilmDto> filmovi = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Ucitaj();
+    }
+
+    async Task Ucitaj()
+    {
+        var kina = await Http.GetFromJsonAsync<List<KinoDto>>("api/kina");
+
+        var kino = kina!.First(x => x.Id == KinoId);
+
+        nazivKina = kino.Naziv;
+
+        filmovi = kino.Filmovi;
+    }
+
+    async Task DodajFilm()
+    {
+        noviFilm.KinoId = KinoId;
+        noviFilm.DatumProjekcije = datumInput;
+
+        await Http.PostAsJsonAsync("api/filmovi", noviFilm);
+
+        noviFilm = new();
+        showAdd = false;
+
+        await Ucitaj();
+    }
+
+    async Task ObrisiFilm(int id)
+    {
+        await Http.DeleteAsync($"api/filmovi/{id}");
+
+        await Ucitaj();
+    }
+
+    void UcitajZaEdit(FilmDto film)
+    {
+        editFilm = new UpdateFilmDto
+        {
+            Id = film.FilmId,
+            Naziv = film.NazivFilma,
+            SifraFilma = film.SifraFilma,
+            DatumProjekcije = film.DatumProjekcije,
+            CijenaKarte = film.CijenaKarte
+        };
+    }
+
+    async Task SpremiIzmjenu()
+    {
+        await Http.PutAsJsonAsync($"api/filmovi/{editFilm!.Id}", editFilm);
+
+        editFilm = null;
+
+        await Ucitaj();
+    }
+
+    public class KinoDto
+    {
+        public int Id { get; set; }
+        public string Naziv { get; set; } = "";
+        public List<FilmDto> Filmovi { get; set; } = new();
+    }
+
+    public class FilmDto
+    {
+        public int FilmId { get; set; }
+        public string NazivFilma { get; set; } = "";
+        public string SifraFilma { get; set; } = "";
+        public DateTime DatumProjekcije { get; set; }
+        public decimal CijenaKarte { get; set; }
+    }
+
+    public class CreateFilmDto
+    {
+        public string Naziv { get; set; } = "";
+        public string SifraFilma { get; set; } = "";
+        public int KinoId { get; set; }
+        public DateTime DatumProjekcije { get; set; }
+        public decimal CijenaKarte { get; set; }
+    }
+
+    public class UpdateFilmDto
+    {
+    public int Id { get; set; }
+    public string Naziv { get; set; } = "";
+    public string SifraFilma { get; set; } = "";
+    public DateTime DatumProjekcije { get; set; }
+    public decimal CijenaKarte { get; set; }
+    }
+}
