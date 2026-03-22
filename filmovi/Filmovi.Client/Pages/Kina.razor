@@ -2,7 +2,7 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 
-<h2 class="mb-4">Kina</h2>
+<h2 class="page-title">Kina</h2>
 
 @if (kina is null)
 {
@@ -10,19 +10,14 @@
 }
 else
 {
-    <div class="row">
+    <div class="row g-4">
         @foreach (var kino in kina)
         {
-            <div class="col-md-3 mb-4">
-                <div class="card h-100" style="cursor:pointer"
-                     @onclick="() => OtvoriKino(kino.Id)">
-
-                    <img class="card-img-top"
-                         src="@($"images/kino{kino.Id}.jpg")"
-                         style="height:180px; object-fit:cover" />
-
-                    <div class="card-body text-center">
-                        <h5 class="card-title">@kino.Naziv</h5>
+            <div class="col-12 col-md-6">
+                <div class="kino-grid-card" @onclick="() => OtvoriKino(kino.Id)">
+                    <img src="@($"images/kino{kino.Id}.jpg")" alt="@kino.Naziv" />
+                    <div class="kino-overlay">
+                        <h3>@kino.Naziv</h3>
                     </div>
                 </div>
             </div>
@@ -31,7 +26,6 @@ else
 }
 
 @code {
-
     private List<KinoDto>? kina;
 
     protected override async Task OnInitializedAsync()
@@ -39,7 +33,7 @@ else
         kina = await Http.GetFromJsonAsync<List<KinoDto>>("api/kina");
     }
 
-    void OtvoriKino(int id)
+    private void OtvoriKino(int id)
     {
         Nav.NavigateTo($"/kino/{id}");
     }
