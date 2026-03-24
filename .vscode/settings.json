@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/dc514595-e62d-40c7-ad62-63c6f2e3b723/resourceGroups/filmovi-rg/providers/Microsoft.Web/sites/filmovi-api",
+    "appService.deploySubpath": "filmovi/filmovi/Filmovi.Api/publish"
+}

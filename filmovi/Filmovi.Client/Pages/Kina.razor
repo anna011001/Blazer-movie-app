@@ -30,7 +30,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        kina = await Http.GetFromJsonAsync<List<KinoDto>>("api/kina");
+        kina = await Http.GetFromJsonAsync<List<KinoDto>>("kina");
     }
 
     private void OtvoriKino(int id)

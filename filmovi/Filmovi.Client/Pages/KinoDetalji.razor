@@ -118,7 +118,7 @@ else
 
     async Task Ucitaj()
     {
-        var kina = await Http.GetFromJsonAsync<List<KinoDto>>("api/kina");
+        var kina = await Http.GetFromJsonAsync<List<KinoDto>>("kina");
 
         var kino = kina!.First(x => x.Id == KinoId);
 
@@ -132,7 +132,7 @@ else
         noviFilm.KinoId = KinoId;
         noviFilm.DatumProjekcije = datumInput;
 
-        await Http.PostAsJsonAsync("api/filmovi", noviFilm);
+        await Http.PostAsJsonAsync("filmovi", noviFilm);
 
         noviFilm = new();
         showAdd = false;
@@ -142,7 +142,7 @@ else
 
     async Task ObrisiFilm(int id)
     {
-        await Http.DeleteAsync($"api/filmovi/{id}");
+        await Http.DeleteAsync($"filmovi/{id}");
 
         await Ucitaj();
     }
@@ -161,7 +161,7 @@ else
 
     async Task SpremiIzmjenu()
     {
-        await Http.PutAsJsonAsync($"api/filmovi/{editFilm!.Id}", editFilm);
+        await Http.PutAsJsonAsync($"filmovi/{editFilm!.Id}", editFilm);
 
         editFilm = null;
 
