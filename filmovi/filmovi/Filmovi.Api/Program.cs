@@ -13,7 +13,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient", policy =>
     {
-        policy.WithOrigins("http://localhost:5152")
+        policy.WithOrigins(
+            "http://localhost:5152",
+            "https://localhost:5152",
+            "https://mango-wave-0af19c103.4.azurestaticapps.net"
+        )
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
