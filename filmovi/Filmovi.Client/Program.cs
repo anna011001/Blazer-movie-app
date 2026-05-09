@@ -7,7 +7,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { 
-    BaseAddress = new Uri("https://filmovi-api-egb0b8e9gqb7dua7.westeurope-01.azurewebsites.net/api/")
+    BaseAddress = new Uri("https://filmovi-api.onrender.com/api/")
 });
 
 await builder.Build().RunAsync();
