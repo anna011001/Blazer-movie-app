@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=filmovi.db"));
-    
+
 builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
@@ -37,6 +37,8 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    db.Database.Migrate();
 
     if (!db.Kina.Any())
     {
