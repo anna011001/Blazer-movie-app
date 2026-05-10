@@ -6,8 +6,9 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { 
-    BaseAddress = new Uri("https://filmovi-api.onrender.com/api/")
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("https://blazer-movie-app.onrender.com/api/")
 });
 
 await builder.Build().RunAsync();
